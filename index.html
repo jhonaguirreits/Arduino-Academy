@@ -6,10 +6,8 @@
   <title>Wokwi Academy V6 | Seguridad ITS Pereira</title>
   
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
-  
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
-
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -50,19 +48,11 @@
        <option value="1">Semana 1: Primer Contacto (LED)</option>
        <option value="2">Semana 2: Semáforo Inteligente</option>
        <option value="3">Semana 3: Botón de Pánico</option>
-       <option value="4">Semana 4: Dimmer Analógico</option>
-       <option value="5">Semana 5: Sintetizador (Buzzer)</option>
-       <option value="6">Semana 6: Radar Automotriz</option>
-       <option value="7">Semana 7: Barrera de Peaje</option>
-       <option value="8">Semana 8: Estación Climática</option>
-       <option value="9">Semana 9: Panel Publicitario</option>
-       <option value="10">SEMANA 10: BOSS FINAL</option>
     </select>
     <div style="display:flex;gap:8px;">
       <button class="export-btn flex-icon" id="export-btn" title="Exportar progreso"><i data-lucide="upload"></i> Exportar</button>
       <input type="file" id="import-file" accept=".json" style="display:none;">
       <button class="export-btn flex-icon" id="import-btn" title="Importar progreso"><i data-lucide="download"></i> Importar</button>
-      <button class="export-btn flex-icon" onclick="logout()" style="color:var(--error-color)"><i data-lucide="log-out"></i></button>
     </div>
   </div>
   <div class="progreso-global">
@@ -75,6 +65,7 @@
 
 <div class="main-container">
   <div class="left-panel">
+    
     <div class="card">
       <h2 id="w-title" class="flex-icon"><i data-lucide="book-open"></i> Misión</h2>
       <h3 class="flex-icon"><i data-lucide="target"></i> El Reto</h3>
@@ -94,6 +85,12 @@
     </div>
 
     <div class="card">
+      <h2 class="flex-icon"><i data-lucide="book-open-check"></i> Paso a Paso</h2>
+      <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 15px;">Analiza qué hace cada bloque de código.</p>
+      <div id="w-explicacion" style="display: flex; flex-direction: column; gap: 10px;"></div>
+    </div>
+
+    <div class="card">
       <h2>
         <div class="flex-icon"><i data-lucide="trending-up"></i> Ruta de Mejora</div>
         <button class="btn-reset flex-icon" onclick="resetProgress()"><i data-lucide="rotate-ccw"></i> Reiniciar</button>
@@ -106,16 +103,23 @@
         </div>
         <div id="eval-basico" class="evaluator-box">
           <div class="eval-header">
-            <div class="eval-header-left"><span>Analizador</span><span id="vidas-basico">❤️❤️❤️</span></div>
-            <div class="eval-header-right"><span id="timer-basico" class="timer-display">⏱ 00:00</span></div>
+            <div class="eval-header-left"><span>Analizador</span><span id="vidas-basico" class="vidas-display">❤️❤️❤️</span></div>
+            <div class="eval-header-right">
+              <span id="record-basico" class="record-display" style="display:none"></span>
+              <span id="timer-basico" class="timer-display">⏱ 00:00</span>
+            </div>
           </div>
           <div class="input-wrap">
-            <textarea id="input-basico" class="code-input" placeholder="Pega tu código aquí..." oninput="validarSintaxis('basico');"></textarea>
-            <div class="syntax-bar" id="syntax-basico"><span style="color:var(--wokwi-blue)">Escribe tu código para analizar...</span></div>
+            <textarea id="input-basico" class="code-input" placeholder="Pega tu código modificado aquí..." oninput="validarSintaxis('basico'); iniciarTimerSiNecesario('basico')"></textarea>
+            <div class="syntax-bar" id="syntax-basico"><span class="syntax-chip chip-info">Escribe tu código para analizar...</span></div>
           </div>
           <div id="pista-basico" class="pista-box"></div>
           <button id="btn-basico" class="btn-verify flex-icon" onclick="verifyCode('basico')"><i data-lucide="play"></i> Verificar Código</button>
           <div id="feedback-basico" class="feedback"></div>
+        </div>
+        <div id="done-basico" class="completed-badge" style="display:none;">
+          <i data-lucide="check-circle-2"></i> Nivel Completado
+          <span id="record-done-basico" class="record-badge" style="display:none;"></span>
         </div>
       </div>
 
@@ -126,16 +130,23 @@
         </div>
         <div id="eval-alto" class="evaluator-box">
           <div class="eval-header">
-            <div class="eval-header-left"><span>Analizador</span><span id="vidas-alto">❤️❤️❤️</span></div>
-            <div class="eval-header-right"><span id="timer-alto" class="timer-display">⏱ 00:00</span></div>
+            <div class="eval-header-left"><span>Analizador</span><span id="vidas-alto" class="vidas-display">❤️❤️❤️</span></div>
+            <div class="eval-header-right">
+              <span id="record-alto" class="record-display" style="display:none"></span>
+              <span id="timer-alto" class="timer-display">⏱ 00:00</span>
+            </div>
           </div>
           <div class="input-wrap">
-            <textarea id="input-alto" class="code-input" placeholder="Pega tu código aquí..." oninput="validarSintaxis('alto');"></textarea>
-            <div class="syntax-bar" id="syntax-alto"><span style="color:var(--wokwi-blue)">Escribe tu código para analizar...</span></div>
+            <textarea id="input-alto" class="code-input" placeholder="Pega tu código modificado aquí..." oninput="validarSintaxis('alto'); iniciarTimerSiNecesario('alto')"></textarea>
+            <div class="syntax-bar" id="syntax-alto"><span class="syntax-chip chip-info">Escribe tu código para analizar...</span></div>
           </div>
           <div id="pista-alto" class="pista-box"></div>
           <button id="btn-alto" class="btn-verify flex-icon" onclick="verifyCode('alto')"><i data-lucide="play"></i> Verificar Código</button>
           <div id="feedback-alto" class="feedback"></div>
+        </div>
+        <div id="done-alto" class="completed-badge" style="display:none;">
+          <i data-lucide="check-circle-2"></i> Nivel Completado
+          <span id="record-done-alto" class="record-badge" style="display:none;"></span>
         </div>
       </div>
 
@@ -146,16 +157,23 @@
         </div>
         <div id="eval-superior" class="evaluator-box">
           <div class="eval-header">
-            <div class="eval-header-left"><span>Analizador</span><span id="vidas-superior">❤️❤️❤️</span></div>
-            <div class="eval-header-right"><span id="timer-superior" class="timer-display">⏱ 00:00</span></div>
+            <div class="eval-header-left"><span>Analizador</span><span id="vidas-superior" class="vidas-display">❤️❤️❤️</span></div>
+            <div class="eval-header-right">
+              <span id="record-superior" class="record-display" style="display:none"></span>
+              <span id="timer-superior" class="timer-display">⏱ 00:00</span>
+            </div>
           </div>
           <div class="input-wrap">
-            <textarea id="input-superior" class="code-input" placeholder="Pega tu código aquí..." oninput="validarSintaxis('superior');"></textarea>
-            <div class="syntax-bar" id="syntax-superior"><span style="color:var(--wokwi-blue)">Escribe tu código para analizar...</span></div>
+            <textarea id="input-superior" class="code-input" placeholder="Pega tu código modificado aquí..." oninput="validarSintaxis('superior'); iniciarTimerSiNecesario('superior')"></textarea>
+            <div class="syntax-bar" id="syntax-superior"><span class="syntax-chip chip-info">Escribe tu código para analizar...</span></div>
           </div>
           <div id="pista-superior" class="pista-box"></div>
           <button id="btn-superior" class="btn-verify flex-icon" onclick="verifyCode('superior')" style="background:var(--nivel-superior)"><i data-lucide="swords"></i> Enfrentar al Boss</button>
           <div id="feedback-superior" class="feedback"></div>
+        </div>
+        <div id="done-superior" class="completed-badge" style="display:none;">
+          <i data-lucide="trophy"></i> ¡BOSS DERROTADO!
+          <span id="record-done-superior" class="record-badge" style="display:none;"></span>
         </div>
       </div>
 
@@ -169,6 +187,5 @@
 </div>
 
 <script src="app.js"></script>
-
 </body>
 </html>
