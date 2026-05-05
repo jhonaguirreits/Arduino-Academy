@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wokwi Academy V6 | Seguridad ITS Pereira</title>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div id="screen-login" class="screen active">
+  <div class="login-container">
+    <h1 class="login-title flex-icon"><i data-lucide="shield-check"></i> Wokwi Academy</h1>
+    <p style="color: var(--text-muted); margin-bottom: 25px; font-size: 0.95rem; text-align:center;">Acceso estudiantes<br><strong>Solo @itspereira.edu.co</strong></p>
+    
+    <input type="email" id="email-input" class="login-field" placeholder="usuario@itspereira.edu.co">
+    <input type="password" id="clave-input" class="login-field" placeholder="Clave de acceso">
+    
+    <div style="display: flex; gap: 10px; margin: 15px 0;">
+      <button onclick="loginLocal()" class="btn-login blue flex-icon" id="btn-login"><i data-lucide="log-in"></i> Iniciar Sesión</button>
+      <button onclick="toggleNewUser()" class="btn-login green flex-icon"><i data-lucide="user-plus"></i> Nuevo Usuario</button>
+    </div>
+    
+    <div id="new-user-section" style="display: none;">
+      <input type="password" id="clave1-input" class="login-field" placeholder="Nueva clave (mín 6 chars)">
+      <input type="password" id="clave2-input" class="login-field" placeholder="Repite nueva clave">
+      <input type="text" id="nombres-input" class="login-field" placeholder="Nombres y Apellidos completos">
+      <input type="text" id="grado-input" class="login-field" placeholder="Grado (ej: 1001A, 902B)">
+      <button onclick="registrarNuevo()" class="btn-login green flex-icon"><i data-lucide="save"></i> Registrar Estudiante</button>
+    </div>
+    
+    <button onclick="recuperarClave()" class="btn-forgot flex-icon"><i data-lucide="key-round"></i> ¿Olvidaste tu clave?</button>
+    
+    <div id="login-error" class="error-msg"></div>
+    <div id="login-success" class="success-msg"></div>
+  </div>
+</div>
+
+<div id="screen-app" class="screen">
+<header>
+  <div class="header-top">
+    <div class="header-title flex-icon"><i data-lucide="terminal"></i> Wokwi Academy // Misión y Retos</div>
+    <select class="week-selector" id="week-select" onchange="loadWeek()">
+       <option value="1">Semana 1: Primer Contacto (LED)</option>
+       <option value="2">Semana 2: Semáforo Inteligente</option>
+       <option value="3">Semana 3: Botón de Pánico</option>
+       <option value="4">Semana 4: Dimmer Analógico</option>
+       <option value="5">Semana 5: Sintetizador (Buzzer)</option>
+       <option value="6">Semana 6: Radar Automotriz</option>
+       <option value="7">Semana 7: Barrera de Peaje</option>
+       <option value="8">Semana 8: Estación Climática</option>
+       <option value="9">Semana 9: Panel Publicitario</option>
+       <option value="10">SEMANA 10: BOSS FINAL</option>
+    </select>
+    <div style="display:flex;gap:8px;">
+      <button class="export-btn flex-icon" id="export-btn" title="Exportar progreso"><i data-lucide="upload"></i> Exportar</button>
+      <input type="file" id="import-file" accept=".json" style="display:none;">
+      <button class="export-btn flex-icon" id="import-btn" title="Importar progreso"><i data-lucide="download"></i> Importar</button>
+      <button class="export-btn flex-icon" onclick="logout()" style="color:var(--error-color)"><i data-lucide="log-out"></i></button>
+    </div>
+  </div>
+  <div class="progreso-global">
+    <span class="progreso-label">Progreso:</span>
+    <div class="progreso-barra-wrap"><div class="progreso-fill" id="progreso-fill"></div></div>
+    <span class="progreso-texto" id="progreso-texto">0 / 30 retos</span>
+    <div class="progreso-semanas" id="progreso-semanas"></div>
+  </div>
+</header>
+
+<div class="main-container">
+  <div class="left-panel">
+    <div class="card">
+      <h2 id="w-title" class="flex-icon"><i data-lucide="book-open"></i> Misión</h2>
+      <h3 class="flex-icon"><i data-lucide="target"></i> El Reto</h3>
+      <div id="w-challenge" class="instruction-box"></div>
+      <h3 class="flex-icon"><i data-lucide="cpu"></i> Componentes</h3>
+      <div id="w-components" class="tags-container"></div>
+      <h3 class="flex-icon"><i data-lucide="plug-2"></i> Conexiones</h3>
+      <ul id="w-wiring"></ul>
+    </div>
+
+    <div class="card">
+      <h2 class="flex-icon"><i data-lucide="code-2"></i> Código Base</h2>
+      <div class="code-container">
+        <button class="btn-copy flex-icon" onclick="copyCode()" id="btnCopy"><i data-lucide="copy"></i> Copiar</button>
+        <div class="code-block" id="w-code"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>
+        <div class="flex-icon"><i data-lucide="trending-up"></i> Ruta de Mejora</div>
+        <button class="btn-reset flex-icon" onclick="resetProgress()"><i data-lucide="rotate-ccw"></i> Reiniciar</button>
+      </h2>
+      
+      <div id="r-container-basico" class="reto-container">
+        <div class="reto-box reto-basico">
+          <div class="reto-titulo" style="color:var(--nivel-basico)"><i data-lucide="circle-dot"></i> Nivel Básico</div>
+          <div id="r-desc-basico"></div>
+        </div>
+        <div id="eval-basico" class="evaluator-box">
+          <div class="eval-header">
+            <div class="eval-header-left"><span>Analizador</span><span id="vidas-basico">❤️❤️❤️</span></div>
+            <div class="eval-header-right"><span id="timer-basico" class="timer-display">⏱ 00:00</span></div>
+          </div>
+          <div class="input-wrap">
+            <textarea id="input-basico" class="code-input" placeholder="Pega tu código aquí..." oninput="validarSintaxis('basico');"></textarea>
+            <div class="syntax-bar" id="syntax-basico"><span style="color:var(--wokwi-blue)">Escribe tu código para analizar...</span></div>
+          </div>
+          <div id="pista-basico" class="pista-box"></div>
+          <button id="btn-basico" class="btn-verify flex-icon" onclick="verifyCode('basico')"><i data-lucide="play"></i> Verificar Código</button>
+          <div id="feedback-basico" class="feedback"></div>
+        </div>
+      </div>
+
+      <div id="r-container-alto" class="reto-container" style="display:none;">
+        <div class="reto-box reto-alto">
+          <div class="reto-titulo" style="color:var(--nivel-alto)"><i data-lucide="triangle"></i> Nivel Alto</div>
+          <div id="r-desc-alto"></div>
+        </div>
+        <div id="eval-alto" class="evaluator-box">
+          <div class="eval-header">
+            <div class="eval-header-left"><span>Analizador</span><span id="vidas-alto">❤️❤️❤️</span></div>
+            <div class="eval-header-right"><span id="timer-alto" class="timer-display">⏱ 00:00</span></div>
+          </div>
+          <div class="input-wrap">
+            <textarea id="input-alto" class="code-input" placeholder="Pega tu código aquí..." oninput="validarSintaxis('alto');"></textarea>
+            <div class="syntax-bar" id="syntax-alto"><span style="color:var(--wokwi-blue)">Escribe tu código para analizar...</span></div>
+          </div>
+          <div id="pista-alto" class="pista-box"></div>
+          <button id="btn-alto" class="btn-verify flex-icon" onclick="verifyCode('alto')"><i data-lucide="play"></i> Verificar Código</button>
+          <div id="feedback-alto" class="feedback"></div>
+        </div>
+      </div>
+
+      <div id="r-container-superior" class="reto-container" style="display:none;">
+        <div class="reto-box reto-superior">
+          <div class="reto-titulo" style="color:var(--nivel-superior)"><i data-lucide="hexagon"></i> Nivel Superior (Boss)</div>
+          <div id="r-desc-superior"></div>
+        </div>
+        <div id="eval-superior" class="evaluator-box">
+          <div class="eval-header">
+            <div class="eval-header-left"><span>Analizador</span><span id="vidas-superior">❤️❤️❤️</span></div>
+            <div class="eval-header-right"><span id="timer-superior" class="timer-display">⏱ 00:00</span></div>
+          </div>
+          <div class="input-wrap">
+            <textarea id="input-superior" class="code-input" placeholder="Pega tu código aquí..." oninput="validarSintaxis('superior');"></textarea>
+            <div class="syntax-bar" id="syntax-superior"><span style="color:var(--wokwi-blue)">Escribe tu código para analizar...</span></div>
+          </div>
+          <div id="pista-superior" class="pista-box"></div>
+          <button id="btn-superior" class="btn-verify flex-icon" onclick="verifyCode('superior')" style="background:var(--nivel-superior)"><i data-lucide="swords"></i> Enfrentar al Boss</button>
+          <div id="feedback-superior" class="feedback"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="wokwi-container">
+    <iframe src="https://wokwi.com/projects/new/arduino-uno" title="Simulador Wokwi" loading="lazy" allow="fullscreen"></iframe>
+  </div>
+</div>
+</div>
+
+<script src="app.js"></script>
+
+</body>
+</html>
