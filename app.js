@@ -56,18 +56,15 @@ const weeks = {
   },
   3: {
     title: "Botón de Pánico",
-    challenge: "Aprende a leer el estado de un botón (Entrada digital).",
+    challenge: "Aprende a leer el estado de un botón.",
     components: ["Pushbutton", "LED x2"],
     wiring: ["LED→PIN 8", "Botón→PIN 7 (INPUT_PULLUP)"],
     code: `void setup() {\n  pinMode(8, OUTPUT);\n  pinMode(7, INPUT_PULLUP);\n}\nvoid loop() {\n  if(digitalRead(7) == LOW) {\n    digitalWrite(8, HIGH);\n  } else {\n    digitalWrite(8, LOW);\n  }\n}`,
     explicacion: [
-      { codigo: "pinMode(7, INPUT_PULLUP);", texto: "⚙️ <strong>Entrada:</strong> El pin 7 recibe una señal en lugar de enviarla." },
-      { codigo: "if(digitalRead(7) == LOW)", texto: "🔄 <strong>Lógica:</strong> Si el botón es presionado (LOW), ejecuta el bloque siguiente." }
+      { codigo: "pinMode(7, INPUT_PULLUP);", texto: "⚙️ <strong>Entrada:</strong> El pin 7 recibe una señal en lugar de enviarla." }
     ],
     retos: {
-      basico: { desc: "Agrega otro LED (PIN 9). Si presionas: prende 9 y apaga 8.", match: ["9,OUTPUT","digitalWrite(9,HIGH)"], pistas: ["En if(LOW) pon el 8 LOW y el 9 HIGH."] },
-      alto: { desc: "Al presionar, el LED debe parpadear simulando alarma.", match: ["delay("], pistas: ["Agrega un ciclo de parpadeo con delay dentro del IF."] },
-      superior: { desc: "Hazlo un interruptor Toggle (una variable booleana que cambia).", match: ["__OR__boolean__bool__"], pistas: ["Crea una variable bool estado = false; fuera del loop."] }
+      basico: { desc: "Agrega otro LED (PIN 9). Si presionas: prende 9 y apaga 8.", match: ["9,OUTPUT","digitalWrite(9,HIGH)"], pistas: ["Pon el 8 LOW y el 9 HIGH dentro del IF."] }
     }
   }
 };
@@ -89,11 +86,14 @@ function simpleHash(str) {
   return 'hs_' + Math.abs(hash).toString(16);
 }
 
+// Prefix base for ALL data belonging to a user (avoids overwriting other users on the same PC)
 function getPrefix() {
-  return currentUser ? `its_v6_${simpleHash(currentUser.email)}_` : '';
+  return currentUser ? `its_v6_${currentUser.email.toLowerCase()}_` : '';
 }
 
-// AUTENTICACIÓN
+/* ====================================================
+   AUTENTICACIÓN Y MULTI-USUARIO
+   ==================================================== */
 function toggleNewUser() {
   const sec = document.getElementById('new-user-section');
   sec.style.display = sec.style.display === 'none' ? 'block' : 'none';
@@ -111,11 +111,12 @@ function registrarNuevo() {
   if(clave1 !== clave2) return errorDiv.style.display = 'block', errorDiv.textContent = 'Las claves no coinciden';
   
   const hash = simpleHash(email + clave1);
+  // Guardamos las credenciales usando el correo como base
   localStorage.setItem(`its_v6_${email}_hash`, hash);
   localStorage.setItem(`its_v6_${email}_nombres`, nombres);
   
   document.getElementById('login-success').style.display = 'block';
-  document.getElementById('login-success').textContent = '✅ Registrado. Inicia sesión.';
+  document.getElementById('login-success').textContent = '✅ Registrado. Inicia sesión arriba.';
   toggleNewUser();
 }
 
@@ -130,29 +131,37 @@ function loginLocal() {
     document.getElementById('screen-login').classList.remove('active');
     document.getElementById('screen-app').classList.add('active');
     
-    // Add user badge
+    // Crear el badge del usuario y botón de salir
+    const oldBadge = document.querySelector('.user-badge');
+    if(oldBadge) oldBadge.remove();
+    
     const badge = document.createElement('div');
-    badge.className = 'user-badge';
-    badge.innerHTML = `<i data-lucide="user"></i> <span>${currentUser.nombres}</span> <button class="btn-logout flex-icon" onclick="logout()"><i data-lucide="log-out"></i></button>`;
-    document.querySelector('.header-top').appendChild(badge);
+    badge.className = 'user-badge flex-icon';
+    badge.innerHTML = `<i data-lucide="user"></i> <span>${currentUser.nombres}</span> <button class="btn-logout flex-icon" onclick="logout()" title="Cerrar Sesión"><i data-lucide="log-out"></i> Salir</button>`;
+    document.getElementById('header-buttons').appendChild(badge);
 
     loadWeek();
     updateProgress();
     lucide.createIcons();
   } else {
     document.getElementById('login-error').style.display = 'block';
-    document.getElementById('login-error').textContent = 'Credenciales incorrectas.';
+    document.getElementById('login-error').textContent = 'Credenciales incorrectas o partida no cargada.';
   }
 }
 
 function logout() {
-  if (confirm('¿Cerrar sesión?')) {
+  if (confirm('¿Seguro que deseas salir? Asegúrate de haber exportado tu partida si cambias de equipo.')) {
     currentUser = null;
     const badge = document.querySelector('.user-badge');
     if(badge) badge.remove();
+    
+    // Limpiar campos y volver al inicio
+    document.getElementById('email-input').value = ''; 
+    document.getElementById('clave-input').value = '';
     document.getElementById('screen-app').classList.remove('active');
     document.getElementById('screen-login').classList.add('active');
-    document.getElementById('email-input').value = ''; document.getElementById('clave-input').value = '';
+    document.getElementById('login-success').style.display = 'none';
+    document.getElementById('login-error').style.display = 'none';
   }
 }
 
@@ -162,18 +171,71 @@ function recuperarClave() {
   const storedHash = localStorage.getItem(`its_v6_${email.toLowerCase()}_hash`);
   const nombres = localStorage.getItem(`its_v6_${email.toLowerCase()}_nombres`);
   if (storedHash && nombres) {
-    alert(`📧 ${nombres}\n🔑 Tu hash inicia en: ${storedHash.substring(0,8)}...\n💡 Usa la clave que genera este hash.`);
+    alert(`📧 ${nombres}\n🔑 Tu hash inicia en: ${storedHash.substring(0,8)}...\n💡 Usa la misma clave con la que te registraste.`);
   } else {
-    alert('❌ Usuario no encontrado.');
+    alert('❌ Usuario no encontrado. O no has cargado tu archivo de partida en este equipo.');
   }
 }
 
-function sessionCheck() {
-  document.getElementById('screen-login').classList.add('active');
-  document.getElementById('screen-app').classList.remove('active');
+/* ====================================================
+   SISTEMA DE GUARDADO (IMPORT / EXPORT JSON)
+   ==================================================== */
+
+// EXPORTAR (Guardar Juego)
+document.getElementById('export-btn').addEventListener('click', () => {
+  if(!currentUser) return alert('Inicia sesión para exportar');
+  const exportData = {};
+  const userPrefix = `its_v6_${currentUser.email.toLowerCase()}`;
+  
+  // Solo exportar la data que le pertenece al usuario actual (incluyendo su clave y nombre)
+  for(let i=0; i<localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if(key.startsWith(userPrefix)) {
+      exportData[key] = localStorage.getItem(key);
+    }
+  }
+  const blob = new Blob([JSON.stringify(exportData, null, 2)], {type: "application/json"});
+  const a = document.createElement('a'); 
+  a.href = URL.createObjectURL(blob);
+  a.download = `Wokwi_SaveData_${currentUser.email.split('@')[0]}.json`;
+  a.click();
+});
+
+// IMPORTAR PARTIDA (Función maestra que lee el archivo)
+function procesarArchivoGuardado(e) {
+  const file = e.target.files[0]; 
+  if(!file) return;
+  
+  const reader = new FileReader();
+  reader.onload = function(event) {
+    try {
+      const data = JSON.parse(event.target.result);
+      // Restaurar llaves en el navegador local
+      Object.keys(data).forEach(key => localStorage.setItem(key, data[key]));
+      
+      alert('✅ ¡Partida cargada exitosamente!\nYa puedes iniciar sesión con tu correo y clave.');
+      e.target.value = ''; // Limpiar input
+      
+      // Si el usuario ya está logueado, recarga la UI
+      if(currentUser) {
+        loadWeek(); 
+        updateProgress();
+      }
+    } catch(err) { 
+      alert('❌ Archivo inválido o corrupto.'); 
+    }
+  };
+  reader.readAsText(file);
 }
 
-// LÓGICA CORE DE RETOS
+// Listeners de importación (Desde el login o desde la App)
+const loginImportInput = document.getElementById('import-login-file');
+if(loginImportInput) loginImportInput.addEventListener('change', procesarArchivoGuardado);
+
+
+/* ====================================================
+   LÓGICA DEL ENTORNO DE APRENDIZAJE Y RETOS
+   ==================================================== */
 function loadWeek() {
   currentRetoId = document.getElementById('week-select').value;
   const data = weeks[currentRetoId];
@@ -197,6 +259,7 @@ function loadWeek() {
       document.getElementById(`r-container-${nivel}`).style.display = 'block';
       document.getElementById(`r-desc-${nivel}`).innerHTML = data.retos[nivel].desc;
       
+      // Usamos el prefix del usuario actual para buscar su progreso
       const isDone = localStorage.getItem(`${getPrefix()}reto_${currentRetoId}_${nivel}`) === 'true';
       const record = localStorage.getItem(`${getPrefix()}record_${currentRetoId}_${nivel}`);
       const doneBadge = document.getElementById(`done-${nivel}`);
@@ -265,11 +328,10 @@ function resetProgress() {
     const pista = document.getElementById(`pista-${nivel}`);
     if(pista) pista.classList.remove('visible');
     
-    validarSintaxis(nivel); // Restablecer barra de sintaxis
+    validarSintaxis(nivel); 
   });
 }
 
-// VALIDADOR EN TIEMPO REAL
 function validarSintaxis(nivel) {
   const txt = document.getElementById(`input-${nivel}`);
   if(!txt) return;
@@ -314,7 +376,7 @@ function verifyCode(nivel) {
       reto.match.forEach(str => {
         if (str.startsWith('__OR__')) {
           const parts = str.split('__').filter(Boolean);
-          parts.shift(); // Remove OR
+          parts.shift();
           if (!parts.some(p => cleanCode.includes(p.replace(/\s+/g, '')))) success = false;
         } else {
           if(!cleanCode.includes(str.replace(/\s+/g, ''))) success = false;
@@ -378,7 +440,6 @@ function mostrarPista(nivel, reto) {
   }
 }
 
-// BARRA DE PROGRESO Y EXPORTACIÓN
 function updateProgress() {
   if (!currentUser) return;
   const totalRetos = Object.keys(weeks).length * 3;
@@ -405,37 +466,9 @@ function updateProgress() {
   document.getElementById('progreso-texto').textContent = `${completados} / ${totalRetos} retos`;
 }
 
-document.getElementById('export-btn').addEventListener('click', () => {
-  if(!currentUser) return alert('Inicia sesión para exportar');
-  const exportData = {};
-  for(let i=0; i<localStorage.length; i++) {
-    const key = localStorage.key(i);
-    if(key.startsWith(getPrefix())) exportData[key.replace(getPrefix(), '')] = localStorage.getItem(key);
-  }
-  const blob = new Blob([JSON.stringify(exportData)], {type: "application/json"});
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-  a.download = `Wokwi_V6_${currentUser.email.split('@')[0]}.json`;
-  a.click();
-});
-
-document.getElementById('import-btn').addEventListener('click', () => { document.getElementById('import-file').click(); });
-document.getElementById('import-file').addEventListener('change', (e) => {
-  if(!currentUser) return alert('Inicia sesión para importar');
-  const file = e.target.files[0]; if(!file) return;
-  const reader = new FileReader();
-  reader.onload = function(event) {
-    try {
-      const data = JSON.parse(event.target.result);
-      Object.keys(data).forEach(key => localStorage.setItem(getPrefix() + key, data[key]));
-      alert('✅ Progreso importado correctamente');
-      loadWeek(); updateProgress();
-    } catch(err) { alert('❌ Archivo inválido'); }
-  };
-  reader.readAsText(file);
-});
-
 // AUTO INICIO
 window.onload = () => {
-  sessionCheck();
+  document.getElementById('screen-login').classList.add('active');
+  document.getElementById('screen-app').classList.remove('active');
   lucide.createIcons();
 };
