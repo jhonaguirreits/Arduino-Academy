@@ -34,6 +34,14 @@
     </div>
     
     <button onclick="recuperarClave()" class="btn-forgot flex-icon"><i data-lucide="key-round"></i> ¿Olvidaste tu clave?</button>
+
+    <div class="save-state-section">
+      <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 10px;">¿Cambiaste de equipo? Carga tu progreso:</p>
+      <input type="file" id="import-login-file" accept=".json" style="display:none;">
+      <button onclick="document.getElementById('import-login-file').click()" class="btn-login flex-icon" style="background: #1f6feb; color: white;">
+        <i data-lucide="upload-cloud"></i> Cargar Archivo de Partida
+      </button>
+    </div>
     
     <div id="login-error" class="error-msg"></div>
     <div id="login-success" class="success-msg"></div>
@@ -43,20 +51,19 @@
 <div id="screen-app" class="screen">
 <header>
   <div class="header-top">
-    <div class="header-title flex-icon"><i data-lucide="terminal"></i> Wokwi Academy // Misión y Retos</div>
+    <div class="header-title flex-icon"><i data-lucide="terminal"></i> Wokwi Academy // Retos</div>
     <select class="week-selector" id="week-select" onchange="loadWeek()">
        <option value="1">Semana 1: Primer Contacto (LED)</option>
        <option value="2">Semana 2: Semáforo Inteligente</option>
        <option value="3">Semana 3: Botón de Pánico</option>
     </select>
-    <div style="display:flex;gap:8px;">
-      <button class="export-btn flex-icon" id="export-btn" title="Exportar progreso"><i data-lucide="upload"></i> Exportar</button>
-      <input type="file" id="import-file" accept=".json" style="display:none;">
-      <button class="export-btn flex-icon" id="import-btn" title="Importar progreso"><i data-lucide="download"></i> Importar</button>
-    </div>
+    <div style="display:flex;gap:8px;" id="header-buttons">
+      <button class="export-btn flex-icon" id="export-btn" title="Guardar partida"><i data-lucide="save"></i> Guardar Partida</button>
+      <input type="file" id="import-app-file" accept=".json" style="display:none;">
+      </div>
   </div>
   <div class="progreso-global">
-    <span class="progreso-label">Progreso:</span>
+    <span class="progreso-label">Tu Progreso Total:</span>
     <div class="progreso-barra-wrap"><div class="progreso-fill" id="progreso-fill"></div></div>
     <span class="progreso-texto" id="progreso-texto">0 / 30 retos</span>
     <div class="progreso-semanas" id="progreso-semanas"></div>
