@@ -3,11 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Wokwi Academy V6 | Seguridad ITS Pereira</title>
+  <title>Wokwi Academy V6 | Gamificación y Teoría</title>
   
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -51,7 +53,23 @@
 <div id="screen-app" class="screen">
 <header>
   <div class="header-top">
-    <div class="header-title flex-icon"><i data-lucide="terminal"></i> Wokwi Academy // Retos</div>
+    <div class="header-title flex-icon">
+      <i data-lucide="terminal"></i> Wokwi Academy
+      
+      <div id="stats-panel" class="stats-panel" style="display:none;">
+        <div class="stat-badge streak-badge flex-icon" title="Racha de estudio continuo">
+          <i data-lucide="flame"></i> <span id="streak-count">0</span>
+        </div>
+        <div class="stat-badge volts-badge flex-icon" title="Volts Acumulados (Usa para pistas)">
+          <i data-lucide="zap"></i> <span id="volts-count">0</span>
+        </div>
+        <div class="monedas-display" title="Monedas (Usa para comprar energía)">
+          🪙 <span id="user-monedas">0</span>
+        </div>
+      </div>
+
+    </div>
+
     <select class="week-selector" id="week-select" onchange="loadWeek()">
        <option value="1">Semana 1: Primer Contacto (LED)</option>
        <option value="2">Semana 2: Semáforo Inteligente</option>
@@ -65,6 +83,7 @@
        <option value="10">Semana 10: BOSS FINAL</option>
     </select>
     <div style="display:flex;gap:8px;" id="header-buttons">
+      <button class="export-btn flex-icon" id="btn-diploma" onclick="descargarDiploma()" style="background: var(--accent); color: white;"><i data-lucide="award"></i> Diploma</button>
       <button class="export-btn flex-icon" id="export-btn" title="Guardar partida"><i data-lucide="save"></i> Guardar Partida</button>
       <input type="file" id="import-app-file" accept=".json" style="display:none;">
     </div>
@@ -82,6 +101,12 @@
     
     <div class="card">
       <h2 id="w-title" class="flex-icon"><i data-lucide="book-open"></i> Misión</h2>
+      
+      <h3 class="flex-icon" style="color: var(--wokwi-blue);"><i data-lucide="brain-circuit"></i> Aprendizaje del Módulo</h3>
+      <div id="w-competencia" class="instruction-box" style="background: rgba(47,129,247,0.08); border-left-color: var(--wokwi-blue); margin-bottom: 20px;"></div>
+      
+      <div id="teoria-container"></div>
+      
       <h3 class="flex-icon"><i data-lucide="target"></i> El Reto</h3>
       <div id="w-challenge" class="instruction-box"></div>
       <h3 class="flex-icon"><i data-lucide="cpu"></i> Componentes</h3>
@@ -112,7 +137,7 @@
       
       <div id="r-container-basico" class="reto-container">
         <div class="reto-box reto-basico">
-          <div class="reto-titulo" style="color:var(--nivel-basico)"><i data-lucide="circle-dot"></i> Nivel Básico</div>
+          <div class="reto-titulo" style="color:var(--nivel-basico)"><i data-lucide="circle-dot"></i> Nivel Básico <span style="color:#8b949e; font-size:0.75rem;">(Premio: 10 ⚡)</span></div>
           <div id="r-desc-basico"></div>
         </div>
         <div id="eval-basico" class="evaluator-box">
@@ -128,7 +153,9 @@
             <div class="syntax-bar" id="syntax-basico"><span class="syntax-chip chip-info">Escribe tu código para analizar...</span></div>
           </div>
           <div id="pista-basico" class="pista-box"></div>
-          <button id="btn-basico" class="btn-verify flex-icon" onclick="verifyCode('basico')"><i data-lucide="play"></i> Verificar Código</button>
+          <div id="btn-container-basico">
+             <button id="btn-basico" class="btn-verify flex-icon" onclick="verifyCode('basico')"><i data-lucide="play"></i> Verificar Código</button>
+          </div>
           <div id="feedback-basico" class="feedback"></div>
         </div>
         <div id="done-basico" class="completed-badge" style="display:none;">
@@ -139,7 +166,7 @@
 
       <div id="r-container-alto" class="reto-container" style="display:none;">
         <div class="reto-box reto-alto">
-          <div class="reto-titulo" style="color:var(--nivel-alto)"><i data-lucide="triangle"></i> Nivel Alto</div>
+          <div class="reto-titulo" style="color:var(--nivel-alto)"><i data-lucide="triangle"></i> Nivel Alto <span style="color:#8b949e; font-size:0.75rem;">(Premio: 20 ⚡)</span></div>
           <div id="r-desc-alto"></div>
         </div>
         <div id="eval-alto" class="evaluator-box">
@@ -155,7 +182,9 @@
             <div class="syntax-bar" id="syntax-alto"><span class="syntax-chip chip-info">Escribe tu código para analizar...</span></div>
           </div>
           <div id="pista-alto" class="pista-box"></div>
-          <button id="btn-alto" class="btn-verify flex-icon" onclick="verifyCode('alto')"><i data-lucide="play"></i> Verificar Código</button>
+          <div id="btn-container-alto">
+            <button id="btn-alto" class="btn-verify flex-icon" onclick="verifyCode('alto')"><i data-lucide="play"></i> Verificar Código</button>
+          </div>
           <div id="feedback-alto" class="feedback"></div>
         </div>
         <div id="done-alto" class="completed-badge" style="display:none;">
@@ -166,7 +195,7 @@
 
       <div id="r-container-superior" class="reto-container" style="display:none;">
         <div class="reto-box reto-superior">
-          <div class="reto-titulo" style="color:var(--nivel-superior)"><i data-lucide="hexagon"></i> Nivel Superior (Boss)</div>
+          <div class="reto-titulo" style="color:var(--nivel-superior)"><i data-lucide="hexagon"></i> Nivel Superior (Boss) <span style="color:#8b949e; font-size:0.75rem;">(Premio: 30 ⚡)</span></div>
           <div id="r-desc-superior"></div>
         </div>
         <div id="eval-superior" class="evaluator-box">
@@ -182,7 +211,9 @@
             <div class="syntax-bar" id="syntax-superior"><span class="syntax-chip chip-info">Escribe tu código para analizar...</span></div>
           </div>
           <div id="pista-superior" class="pista-box"></div>
-          <button id="btn-superior" class="btn-verify flex-icon" onclick="verifyCode('superior')" style="background:var(--nivel-superior)"><i data-lucide="swords"></i> Enfrentar al Boss</button>
+          <div id="btn-container-superior">
+            <button id="btn-superior" class="btn-verify flex-icon" onclick="verifyCode('superior')" style="background:var(--nivel-superior)"><i data-lucide="swords"></i> Enfrentar al Boss</button>
+          </div>
           <div id="feedback-superior" class="feedback"></div>
         </div>
         <div id="done-superior" class="completed-badge" style="display:none;">
@@ -198,6 +229,62 @@
     <iframe src="https://wokwi.com/projects/new/arduino-uno" title="Simulador Wokwi" loading="lazy" allow="fullscreen"></iframe>
   </div>
 </div>
+
+<div id="diploma-wrapper" style="position: absolute; top: -9999px; left: -9999px; width: 1122px; height: 793px; background: white; padding: 40px; font-family: 'Inter', Arial, sans-serif; z-index: -1;">
+  
+  <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0.04; pointer-events: none; z-index: 0;">
+    <svg width="600" height="600" viewBox="0 0 24 24" fill="none" stroke="#0d1117" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/>
+    </svg>
+  </div>
+
+  <div style="border: 12px solid #0d1117; height: 100%; padding: 25px; text-align: center; position: relative; background: rgba(248, 251, 255, 0.95); box-sizing: border-box; border-radius: 12px; z-index: 1;">
+    
+    <div style="border: 3px solid #2f81f7; height: 100%; padding: 20px 40px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between;">
+      
+      <div>
+        <div style="display: flex; justify-content: center; align-items: center; gap: 15px; margin-bottom: 10px;">
+          <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="#2f81f7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+          <div style="text-align: left;">
+            <h2 style="font-size: 1.6rem; color: #0d1117; margin: 0; text-transform: uppercase; font-weight: 800; letter-spacing: 1px;">Instituto Técnico Superior</h2>
+            <h3 style="font-size: 1.1rem; color: #484f58; margin: 0; font-weight: 600;">Wokwi Academy - Nivel Arduino</h3>
+          </div>
+        </div>
+        
+        <h1 style="font-size: 2.8rem; color: #0d1117; margin: 5px 0; font-weight: 800; letter-spacing: 2px;">CERTIFICADO DE EXCELENCIA</h1>
+        <p style="font-size: 1.2rem; color: #484f58; margin: 5px 0;">Se otorga el presente reconocimiento a:</p>
+        
+        <h3 id="dip-nombre" style="font-size: 2.6rem; color: #0d1117; margin: 10px 0; text-transform: capitalize; border-bottom: 2px solid #d0d7de; display: inline-block; padding: 0 40px;">Nombre del Estudiante</h3>
+        
+        <p style="font-size: 1.1rem; color: #484f58; margin: 10px 0;">
+          Estudiante del grado <strong id="dip-grado" style="color: #2f81f7;">10A</strong>, por haber completado el programa con un progreso del <strong id="dip-progreso" style="color: #238636;">100%</strong> y una calificación global de <strong id="dip-nota" style="color: #238636;">5.0 / 5.0</strong>.
+        </p>
+        
+        <div style="margin: 15px 0;">
+            <span id="dip-estado" style="background: #238636; color: white; padding: 6px 18px; border-radius: 20px; font-weight: bold; font-size: 1.1rem; letter-spacing: 1px;">ESTADO: GRADUADO</span>
+        </div>
+      </div>
+
+      <div style="text-align: left; padding: 0 20px; margin-top: 5px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center;">
+        <h4 style="color: #0d1117; border-bottom: 2px solid #2f81f7; padding-bottom: 5px; font-size: 1.1rem; margin-bottom: 15px; text-transform: uppercase;">Competencias Técnicas Adquiridas:</h4>
+        <ul id="dip-competencias" style="color: #24292f; font-size: 0.95rem; column-count: 2; column-gap: 40px; line-height: 1.7; list-style: none; padding: 0; margin: 0; font-weight: 500;">
+          </ul>
+      </div>
+      
+      <div style="display: flex; justify-content: space-between; padding: 0 50px; margin-top: 20px;">
+        <div style="text-align: center; border-top: 2px solid #0d1117; padding-top: 10px; width: 320px;">
+          <div style="font-weight: bold; color: #0d1117; font-size: 1.15rem;">Jhon Jairo Aguirre</div>
+          <div style="color: #484f58; font-size: 0.9rem;">Doctor en Ciencias de la Educación</div>
+          <div style="color: #484f58; font-size: 0.9rem; font-weight: bold;">Docente Titular</div>
+        </div>
+        <div style="text-align: center; border-top: 2px solid #0d1117; padding-top: 10px; width: 250px;">
+          <div style="font-weight: bold; color: #0d1117; font-size: 1.15rem;" id="dip-fecha">Fecha</div>
+          <div style="color: #484f58; font-size: 0.9rem;">Fecha de Expedición</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
 </div>
 
 <script src="app.js"></script>
