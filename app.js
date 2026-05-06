@@ -185,9 +185,6 @@ const weeks = {
   }
 };
 
-/* ====================================================
-   ESTADO GLOBAL Y VARIABLES
-   ==================================================== */
 let currentUser = null;
 let currentRetoId = '1';
 let timers = {};
@@ -232,7 +229,7 @@ function registrarNuevo() {
   localStorage.setItem(`its_v6_${email}_nombres`, nombres);
   
   document.getElementById('login-success').style.display = 'block';
-  document.getElementById('login-success').textContent = '✅ Registrado. Cierra esta ventana e inicia sesión.';
+  document.getElementById('login-success').textContent = '✅ Registrado. Inicia sesión arriba.';
   toggleNewUser();
 }
 
